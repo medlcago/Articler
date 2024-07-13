@@ -59,6 +59,22 @@ const getData = async (page) => {
   loading.value = false;
 }
 
+const alertMessage = ref("");
+const closeAlert = () => {
+  alertMessage.value = "";
+}
+
+const deletePost = async (event) => {
+  const {status, message} = event;
+  alertMessage.value = message;
+  if (status === 204) {
+    posts.value = await getPosts({
+      limit: POST_LIMIT,
+      offset: offset.value,
+    });
+  }
+}
+
 onMounted(async () => {
   posts.value = await getPosts({
     limit: POST_LIMIT,
@@ -80,8 +96,24 @@ onMounted(async () => {
         Создать новый пост
       </button>
     </div>
+
+    <div class="mt-2 alert alert-info alert-dismissible fade show" role="alert" v-if="alertMessage">
+      <div class="text-center font-weight-bold">
+        {{ alertMessage }}
+      </div>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true" @click="closeAlert">&times;</span>
+      </button>
+    </div>
+
     <div class="posts">
-      <Post v-if="posts.results" v-for="post in posts.results" :key="post.id" :post="post"/>
+      <Post
+          v-if="posts.results"
+          v-for="post in posts.results"
+          :key="post.id"
+          :post="post"
+          @delete="deletePost"
+      />
       <h1 v-else class="text-center">
         Нет постов
       </h1>
@@ -89,6 +121,7 @@ onMounted(async () => {
       <Pagination @page="getData" :current-page="currentPage" :total-items="totalRecords" :items-per-page="POST_LIMIT"/>
     </div>
   </div>
+
   <Modal
       id="createPostModal"
       name="createPostModal"
@@ -125,8 +158,7 @@ onMounted(async () => {
     </template>
     <template #footer>
       <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="close">Закрыть</button>
-      <button type="button" class="btn btn-primary" v-if="showModal" @click="saveData">
-        Сохранить изменения
+      <button type="button" class="btn btn-primary" v-if="showModal" @click="saveData">Опубликовать
       </button>
     </template>
   </Modal>

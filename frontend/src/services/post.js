@@ -62,3 +62,23 @@ export const createPost = async (title, description, is_published) => {
         }
     }
 }
+
+export const deletePost = async (id) => {
+    try {
+        const access_token = parseCookie("access_token");
+        const config = {
+            headers: {
+                Authorization: `Bearer ${access_token}`
+            }
+        }
+        const response = await instance.delete(`/${id}/`, config);
+        return {
+            status: response.status
+        }
+    } catch (error) {
+        console.log("Failed to delete post");
+        return {
+            status: error.response.status
+        }
+    }
+}
