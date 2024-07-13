@@ -13,6 +13,19 @@ const route = useRoute()
 const post = ref({})
 const loading = ref(true)
 
+const alertMessage = ref("");
+const closeAlert = () => {
+  alertMessage.value = "";
+}
+
+const deletePost = (event) => {
+  const {status, message} = event
+  if (status === 204) {
+    router.replace({name: "main"})
+  } else {
+    alertMessage.value = message
+  }
+}
 
 onMounted(async () => {
   loading.value = true;
@@ -31,8 +44,21 @@ onMounted(async () => {
   <Header/>
   <LoadingSpinner v-if="loading"/>
   <div class="container mt-3" v-else>
+
+    <div class="mt-2 alert alert-info alert-dismissible fade show" role="alert" v-if="alertMessage">
+      <div class="text-center font-weight-bold">
+        {{ alertMessage }}
+      </div>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true" @click="closeAlert">&times;</span>
+      </button>
+    </div>
+
     <div class="post">
-      <Post :post="post">
+      <Post
+          :post="post"
+          @delete="deletePost"
+      >
         <template #footer>
           <div class="d-flex justify-content-end">
             <RouterLink to="/" class="btn btn-primary btn-sm rounded" role="button">На главную</RouterLink>
