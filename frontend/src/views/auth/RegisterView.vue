@@ -63,7 +63,7 @@ const register = async () => {
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Регистрация</h2>
               <form>
-                <div class="mb-3">
+                <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
                   <input type="email" class="form-control" id="email" v-model="email" required
                          placeholder="Введите email">
@@ -71,7 +71,7 @@ const register = async () => {
                     {{ error }}
                   </div>
                 </div>
-                <div class="mb-3">
+                <div class="form-group mb-3">
                   <label for="password" class="form-label">Пароль</label>
                   <input type="password" class="form-control" id="password" v-model="password" required
                          placeholder="Введите пароль">
@@ -79,7 +79,7 @@ const register = async () => {
                     Пароли не совпадают
                   </div>
                 </div>
-                <div class="mb-3">
+                <div class="form-group mb-3">
                   <label for="confirmPassword" class="form-label">Подтверждение пароля</label>
                   <input type="password" class="form-control" id="confirmPassword" v-model="confirmPassword" required
                          placeholder="Подтвердите пароль">

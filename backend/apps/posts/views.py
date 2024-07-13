@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework import viewsets
 
 from .models import Post
+from .paginations import StandardResultsSetPagination
 from .permissions import IsOwnerOrReadOnly
 from .serializers import PostSerializer
 
@@ -9,9 +10,10 @@ cache_timeout = 60 * 5
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().select_related("author")
     serializer_class = PostSerializer
     permission_classes = (IsOwnerOrReadOnly,)
+    pagination_class = StandardResultsSetPagination
     filterset_fields = ("author__id", "id", "is_published")
 
     def perform_create(self, serializer):

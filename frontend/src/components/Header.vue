@@ -63,13 +63,22 @@ onMounted(() => {
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                   <li>
-                    <RouterLink :to="{name: 'profile'}" class="dropdown-item text-primary">Профиль</RouterLink>
+                    <RouterLink :to="{name: 'profile'}" class="dropdown-item text-primary">
+                      <i class="bi bi-person"></i>
+                      Профиль
+                    </RouterLink>
                   </li>
                   <li>
-                    <RouterLink :to="{name: 'settings'}" class="dropdown-item text-success">Настройки</RouterLink>
+                    <RouterLink :to="{name: 'settings'}" class="dropdown-item text-success">
+                      <i class="bi bi-gear"></i>
+                      Настройки
+                    </RouterLink>
                   </li>
                   <li>
-                    <RouterLink to=" #" class="dropdown-item text-danger" @click="logout">Выйти</RouterLink>
+                    <RouterLink to=" #" class="dropdown-item text-danger" @click="logout">
+                      <i class="bi bi-forward-fill"></i>
+                      Выйти
+                    </RouterLink>
                   </li>
                 </ul>
               </li>

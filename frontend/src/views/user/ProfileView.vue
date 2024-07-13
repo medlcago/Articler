@@ -1,7 +1,7 @@
 <script setup>
 
 import Header from "@/components/Header.vue";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {getPosts} from "@/services/post.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {useTextareaAutosize} from "@vueuse/core";
@@ -52,12 +52,6 @@ const saveProfile = async () => {
   }
 }
 
-watch(input, (newStatus) => {
-  if (newStatus.length > 128) {
-    input.value = newStatus.slice(0, 128)
-  }
-})
-
 onMounted(async () => {
   posts.value = await getPosts({
     limit: POST_PROFILE_LIMIT,
@@ -70,8 +64,8 @@ onMounted(async () => {
 <template>
   <Header/>
   <LoadingSpinner v-if="loading"/>
-  <div class="container" v-else>
-    <div class="row mt-5">
+  <div class="container mt-5" v-else>
+    <div class="row">
       <div class="col-md-4 profile-column">
 
         <div class="d-flex justify-content-center">
@@ -91,7 +85,7 @@ onMounted(async () => {
         <div class="email">
           <h2 id="user-email">{{ user.email }}</h2>
         </div>
-
+        <div class="border-bottom w-100 my-2"></div>
         <div class="profile-info" v-if="!editProfile">
           <div class="status">
             <p id="user-status" v-if="currentStatus">{{ currentStatus }}</p>
@@ -106,6 +100,7 @@ onMounted(async () => {
         <!-- Editing a profile-->
         <div class="form-group" v-else>
             <textarea
+                maxlength="128"
                 @keydown.enter.prevent
                 ref="textarea"
                 v-model.trim="input"
@@ -128,13 +123,13 @@ onMounted(async () => {
           <h3>10 последних постов</h3>
           <div class="posts">
             <div class="list-group mb-1" v-for="post in posts.results" :key="post.id">
-              <a :href="`/posts/${post.id}`" class="list-group-item list-group-item-action">
-                <div class="d-flex justify-content-between">
+              <RouterLink :to="`/post/${post.id}`" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between text-break">
                   <h5 class="mb-1">
                     {{ post.title }}
                   </h5>
                 </div>
-              </a>
+              </RouterLink>
             </div>
           </div>
         </template>

@@ -36,7 +36,7 @@ const emits = defineEmits(["save", "close"]);
     <div class="modal-dialog" role="document" :class="[align, size]">
 
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header text-break">
           <slot name="header">
             <h5 class="modal-title" :id="name">{{ title }}</h5>
           </slot>
