@@ -19,7 +19,6 @@ const offset = ref(0)
 const {textarea, input} = useTextareaAutosize({styleProp: 'minHeight'})
 
 const loading = ref(true)
-const showModal = ref(true)
 const postTitle = ref("")
 const posts = ref({})
 const isPublished = ref(true)
@@ -33,14 +32,16 @@ const close = () => {
   isPublished.value = true;
 }
 
-const saveData = async () => {
+const publishPost = async () => {
   const {data, status} = await createPost(postTitle.value, input.value, isPublished.value);
   if (status === 201) {
     postTitle.value = "";
     input.value = "";
-    showModal.value = false;
+    $('#createPostModal').modal('hide')
     errors.value = {};
-    posts.value = await getPosts();
+    posts.value = await getPosts({
+      limit: POST_LIMIT
+    });
   } else if (status === 400) {
     errors.value = data;
   }
@@ -48,7 +49,7 @@ const saveData = async () => {
 
 const totalRecords = computed(() => posts.value.count)
 
-const getData = async (page) => {
+const changePageAndGetPosts = async (page) => {
   loading.value = true;
   offset.value = (page - 1) * POST_LIMIT;
   currentPage.value = page;
@@ -56,6 +57,14 @@ const getData = async (page) => {
     limit: POST_LIMIT,
     offset: offset.value,
   });
+  if (posts.value.results.length === 0 && currentPage.value > 1) {
+    currentPage.value--;
+    offset.value = (currentPage.value - 1) * POST_LIMIT;
+    posts.value = await getPosts({
+      limit: POST_LIMIT,
+      offset: offset.value,
+    });
+  }
   loading.value = false;
 }
 
@@ -68,10 +77,7 @@ const deletePost = async (event) => {
   const {status, message} = event;
   alertMessage.value = message;
   if (status === 204) {
-    posts.value = await getPosts({
-      limit: POST_LIMIT,
-      offset: offset.value,
-    });
+    await changePageAndGetPosts(currentPage.value);
   }
 }
 
@@ -90,9 +96,9 @@ onMounted(async () => {
   <Header/>
   <LoadingSpinner v-if="loading"/>
   <div class="container mt-3" v-else>
+    <!-- Opening a modal to create a post-->
     <div class="d-flex justify-content-end" v-if="isAuthenticated">
-      <button class="btn btn-primary" data-toggle="modal" data-target="#createPostModal"
-              @click="showModal= true">
+      <button class="btn btn-primary" data-toggle="modal" data-target="#createPostModal">
         Создать новый пост
       </button>
     </div>
@@ -106,22 +112,29 @@ onMounted(async () => {
       </button>
     </div>
 
+    <!-- List of posts-->
     <div class="posts">
-      <Post
-          v-if="posts.results"
-          v-for="post in posts.results"
-          :key="post.id"
-          :post="post"
-          @delete="deletePost"
-      />
+      <template v-if="totalRecords > 0">
+        <Post
+            v-for="post in posts.results"
+            :key="post.id"
+            :post="post"
+            @delete="deletePost"
+        />
+        <Pagination
+            @page="changePageAndGetPosts"
+            :current-page="currentPage"
+            :total-items="totalRecords"
+            :items-per-page="POST_LIMIT"
+        />
+      </template>
       <h1 v-else class="text-center">
         Нет постов
       </h1>
-
-      <Pagination @page="getData" :current-page="currentPage" :total-items="totalRecords" :items-per-page="POST_LIMIT"/>
     </div>
   </div>
 
+  <!-- Modal for creating a post-->
   <Modal
       id="createPostModal"
       name="createPostModal"
@@ -158,10 +171,10 @@ onMounted(async () => {
     </template>
     <template #footer>
       <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="close">Закрыть</button>
-      <button type="button" class="btn btn-primary" v-if="showModal" @click="saveData">Опубликовать
-      </button>
+      <button type="button" class="btn btn-primary" @click="publishPost">Опубликовать</button>
     </template>
   </Modal>
+
 </template>
 
 <style scoped>
