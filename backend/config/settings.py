@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework_simplejwt',
     'corsheaders',
+    'django_rest_passwordreset',
 ]
 
 # apps
@@ -217,7 +218,11 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 }
 
+DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 1
+
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 ALLOWED_IMAGE_EXTENSIONS = ("jpg", "jpeg", "png")
 AVATARS_PATH = "avatars/{user_id}/{filename}"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

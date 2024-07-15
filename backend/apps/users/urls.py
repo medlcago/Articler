@@ -9,5 +9,6 @@ router = routers.DefaultRouter()
 router.register(r"users", UserViewSet)
 
 urlpatterns = [
+    path("users/reset-password/", include("django_rest_passwordreset.urls", namespace="reset-password")),
     path("", include(router.urls)),
 ]
