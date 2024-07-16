@@ -71,3 +71,58 @@ export const changeProfile = async (userId, data) => {
         }
     }
 }
+
+export const resetPassword = async (email) => {
+    try {
+        const response = await instance.post("/reset-password/", {
+            email: email
+        });
+        return {
+            data: response.data,
+            status: response.status
+        }
+    } catch (error) {
+        console.log("Failed to send reset password email");
+        return {
+            data: error.response.data,
+            status: error.response.status
+        }
+    }
+}
+
+export const validateToken = async (token) => {
+    try {
+        const response = await instance.post("/reset-password/validate_token/", {
+            token: token
+        });
+        return {
+            data: response.data,
+            status: response.status
+        }
+    } catch (error) {
+        console.log("Failed to validate token");
+        return {
+            data: error.response.data,
+            status: error.response.status
+        }
+    }
+}
+
+export const resetPasswordConfirm = async (token, password) => {
+    try {
+        const response = await instance.post("/reset-password/confirm/", {
+            token: token,
+            password: password
+        });
+        return {
+            data: response.data,
+            status: response.status
+        }
+    } catch (error) {
+        console.log("Failed to reset password");
+        return {
+            data: error.response.data,
+            status: error.response.status
+        }
+    }
+}

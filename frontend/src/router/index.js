@@ -1,6 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import {useStore} from "vuex";
-import {logoutUser, refreshAccessToken} from "@/services/auth.js";
+import {logoutUser} from "@/services/auth.js";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -12,6 +12,7 @@ const router = createRouter({
             meta: {
                 shortName: "Вход",
                 longName: "Страница входа",
+                redirectIfAuthenticated: true,
             }
         },
         {
@@ -21,6 +22,7 @@ const router = createRouter({
             meta: {
                 shortName: "Регистрация",
                 longName: "Страница регистрации",
+                redirectIfAuthenticated: true,
             }
         },
         {
@@ -73,6 +75,25 @@ const router = createRouter({
                 shortName: "Страница не найдена",
                 longName: "Страница не найдена",
             }
+        },
+        {
+            path: "/reset-password",
+            name: "resetPassword",
+            component: () => import("../views/user/ResetPasswordView.vue"),
+            meta: {
+                shortName: "Сброс пароля",
+                longName: "Страница сброса пароля",
+            }
+        },
+        {
+            path: "/forgot-password",
+            name: "forgotPassword",
+            component: () => import("../views/user/ForgotPasswordView.vue"),
+            meta: {
+                shortName: "Восстановление пароля",
+                longName: "Страница восстановления пароля",
+                redirectIfAuthenticated: true,
+            }
         }
     ]
 })
@@ -91,7 +112,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.meta.requiresAuth && !isLoggedIn) {
         await logoutUser();
         next("/login");
-    } else if (isLoggedIn && (to.name === "login" || to.name === "register")) {
+    } else if (isLoggedIn && to.meta.redirectIfAuthenticated) {
         next("/profile");
     } else {
         next();

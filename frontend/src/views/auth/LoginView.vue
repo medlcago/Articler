@@ -5,6 +5,7 @@ import {ref} from "vue";
 import {loginUser} from "@/services/auth.js";
 import {useRouter} from "vue-router";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import CustomInput from "@/components/CustomInput.vue";
 
 const router = useRouter()
 
@@ -39,13 +40,25 @@ const login = async () => {
               <form>
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="email" v-model="email" required
-                         placeholder="Введите email">
+                  <CustomInput
+                      v-model="email"
+                      type="email"
+                      id="email"
+                      placeholder="Введите email"
+                      class="form-control"
+                      required
+                  />
                 </div>
                 <div class="form-group mb-3">
                   <label for="password" class="form-label">Пароль</label>
-                  <input type="password" class="form-control" id="password" v-model="password" required
-                         placeholder="Введите пароль">
+                  <CustomInput
+                      v-model="password"
+                      type="password"
+                      id="password"
+                      placeholder="Введите пароль"
+                      class="form-control"
+                      required
+                  />
                   <div class="text-danger" v-if="error">
                     {{ error }}
                   </div>
@@ -55,6 +68,9 @@ const login = async () => {
               <div class="text-center mt-3">
                 <p>Еще нет аккаунта?
                   <RouterLink to="/register">Регистрация</RouterLink>
+                </p>
+                <p>
+                  <RouterLink to="/forgot-password">Восстановить пароль</RouterLink>
                 </p>
               </div>
             </div>

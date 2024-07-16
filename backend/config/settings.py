@@ -219,10 +219,27 @@ SIMPLE_JWT = {
 }
 
 DJANGO_REST_MULTITOKENAUTH_RESET_TOKEN_EXPIRY_TIME = 1
+DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
+    "CLASS": "django_rest_passwordreset.tokens.RandomStringTokenGenerator",
+    "OPTIONS": {
+        "min_length": 30,
+        "max_length": 60
+    }
+}
+
+BACKEND_BASE_URL = env("BACKEND_BASE_URL")
+FRONTEND_BASE_URL = env("FRONTEND_BASE_URL")
+
+RESET_PASSWORD_URL = FRONTEND_BASE_URL + "/reset-password/?token={token}"
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
 
 ALLOWED_IMAGE_EXTENSIONS = ("jpg", "jpeg", "png")
 AVATARS_PATH = "avatars/{user_id}/{filename}"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_USE_TLS = True
