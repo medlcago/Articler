@@ -6,20 +6,21 @@ import {computed, onMounted, ref} from "vue";
 import {createPost, getPosts} from "@/services/post.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Modal from "@/components/Modal.vue";
-import {useTextareaAutosize} from "@vueuse/core";
 import {POST_LIMIT} from "@/config.js";
 import Pagination from "@/components/Pagination.vue";
 import {useAuth} from "@/hooks/auth.js";
+import CustomInput from "@/components/CustomInput.vue";
+import CustomTextarea from "@/components/CustomTextarea.vue";
+import CustomButton from "@/components/CustomButton.vue";
 
 const {isAuthenticated} = useAuth()
 
 const currentPage = ref(1)
 const offset = ref(0)
-
-const {textarea, input} = useTextareaAutosize({styleProp: 'minHeight'})
-
 const loading = ref(true)
+
 const postTitle = ref("")
+const postDescription = ref("")
 const posts = ref({})
 const isPublished = ref(true)
 
@@ -28,15 +29,15 @@ const errors = ref({})
 const close = () => {
   errors.value = {}
   postTitle.value = "";
-  input.value = "";
+  postDescription.value = "";
   isPublished.value = true;
 }
 
 const publishPost = async () => {
-  const {data, status} = await createPost(postTitle.value, input.value, isPublished.value);
+  const {data, status} = await createPost(postTitle.value, postDescription.value, isPublished.value);
   if (status === 201) {
     postTitle.value = "";
-    input.value = "";
+    postDescription.value = "";
     $('#createPostModal').modal('hide')
     errors.value = {};
     posts.value = await getPosts({
@@ -98,9 +99,11 @@ onMounted(async () => {
   <div class="container mt-3" v-else>
     <!-- Opening a modal to create a post-->
     <div class="d-flex justify-content-end" v-if="isAuthenticated">
-      <button class="btn btn-primary" data-toggle="modal" data-target="#createPostModal">
-        Создать новый пост
-      </button>
+      <CustomButton
+          text="Создать новый пост"
+          data-toggle="modal"
+          data-target="#createPostModal"
+      />
     </div>
 
     <div class="mt-2 alert alert-info alert-dismissible fade show" role="alert" v-if="alertMessage">
@@ -140,50 +143,51 @@ onMounted(async () => {
       name="createPostModal"
       title="Создать новый пост"
       size="modal-lg"
+      @close="close"
+      @confirm="publishPost"
+      confirm-text="Опубликовать"
   >
     <template #body>
       <div class="form-group">
         <label for="title">Заголовок</label>
-        <input type="text" class="form-control" id="title"
-               placeholder="Enter title" v-model="postTitle">
+
+        <CustomInput
+            v-model="postTitle"
+            type="text"
+            id="title"
+            placeholder="Введите заголовок"
+            class="form-control"
+        />
         <div class="text-danger" v-if="errors.hasOwnProperty('title')" v-for="error in errors['title']">
           {{ error }}
         </div>
       </div>
+
       <div class="form-group">
         <label for="title">Описание</label>
-        <textarea
-            ref="textarea"
-            v-model="input"
-            class="form-control resize-none"
+        <CustomTextarea
+            v-model="postDescription"
             id="description"
-            placeholder="Enter description"
+            placeholder="Введите описание"
+            class="form-control"
             rows="3"
         />
         <div class="text-danger" v-if="errors.hasOwnProperty('description')" v-for="error in errors['description']">
           {{ error }}
         </div>
       </div>
+
       <select class="form-control" aria-label="select" v-model="isPublished">
         <option :value="true">Опубликовано</option>
         <option :value="false">Черновик</option>
       </select>
-    </template>
-    <template #footer>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal" @click="close">Закрыть</button>
-      <button type="button" class="btn btn-primary" @click="publishPost">Опубликовать</button>
     </template>
   </Modal>
 
 </template>
 
 <style scoped>
-textarea {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-textarea::-webkit-scrollbar {
-  display: none;
+select {
+  border-radius: 10px;
 }
 </style>

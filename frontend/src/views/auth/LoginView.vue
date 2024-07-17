@@ -6,6 +6,7 @@ import {loginUser} from "@/services/auth.js";
 import {useRouter} from "vue-router";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import CustomInput from "@/components/CustomInput.vue";
+import CustomButton from "@/components/CustomButton.vue";
 
 const router = useRouter()
 
@@ -37,7 +38,7 @@ const login = async () => {
           <div class="card">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Авторизация</h2>
-              <form>
+              <form @submit.prevent="login">
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
                   <CustomInput
@@ -63,7 +64,11 @@ const login = async () => {
                     {{ error }}
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" @click.prevent="login">Войти</button>
+                <CustomButton
+                    text="Войти"
+                    type="submit"
+                    class="btn-block"
+                />
               </form>
               <div class="text-center mt-3">
                 <p>Еще нет аккаунта?

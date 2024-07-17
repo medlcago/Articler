@@ -1,4 +1,6 @@
 <script setup>
+import CustomButton from "@/components/CustomButton.vue";
+
 defineProps({
   id: {
     type: String,
@@ -24,10 +26,26 @@ defineProps({
   size: {
     type: String,
     required: false,
+  },
+  confirmText: {
+    type: String,
+    default: "Сохранить"
+  },
+  confirmColor: {
+    type: String,
+    default: "primary"
+  },
+  closeText: {
+    type: String,
+    default: "Закрыть"
+  },
+  closeColor: {
+    type: String,
+    default: "secondary"
   }
 });
 
-const emits = defineEmits(["save", "close"]);
+const emits = defineEmits(["confirm", "close"]);
 </script>
 
 <template>
@@ -48,11 +66,17 @@ const emits = defineEmits(["save", "close"]);
         </div>
         <div class="modal-footer">
           <slot name="footer">
-            <button type="button" class="btn btn-secondary" @click="emits('close')" data-dismiss="modal">Закрыть
-            </button>
-            <button type="button" class="btn btn-primary" @click="emits('save')">Сохранить
-              изменения
-            </button>
+            <CustomButton
+                :text="closeText"
+                :class="[closeColor ? 'btn-' + closeColor: '']"
+                @click="emits('close')"
+                data-dismiss="modal"
+            />
+            <CustomButton
+                :text="confirmText"
+                :class="[confirmColor ? 'btn-' + confirmColor: '']"
+                @click="emits('confirm')"
+            />
           </slot>
         </div>
       </div>

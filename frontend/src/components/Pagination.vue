@@ -47,7 +47,7 @@ const pages = computed(() => {
       </li>
       <li class="page-item" v-for="page in pages " :key="page"
           :class="{ 'active': page === currentPage }">
-        <button class="page-link" @click="emits('page', page)">
+        <button class="page-link" :disabled="page === currentPage" @click="emits('page', page)">
           {{ page }}
         </button>
       </li>

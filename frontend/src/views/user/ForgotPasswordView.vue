@@ -6,6 +6,7 @@ import {resetPassword} from "@/services/user.js";
 import Alert from "@/components/Alert.vue";
 import {isValidEmail} from "@/utils/index.js";
 import CustomInput from "@/components/CustomInput.vue";
+import CustomButton from "@/components/CustomButton.vue";
 
 const messageSent = ref(null);
 const email = ref("");
@@ -54,9 +55,12 @@ const sendResetPasswordMessage = async () => {
                     required
                 />
               </div>
-              <button type="submit" class="btn btn-primary btn-block" :disabled="!isValidEmail(email)">
-                Сбросить пароль
-              </button>
+              <CustomButton
+                  text="Сбросить пароль"
+                  type="sumbit"
+                  class="btn-block"
+                  :disabled="!isValidEmail(email)"
+              />
             </form>
           </div>
         </div>

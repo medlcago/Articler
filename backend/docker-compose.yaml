@@ -26,6 +26,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "${EXTERNAL_PORT}:${PORT}"
     command: >

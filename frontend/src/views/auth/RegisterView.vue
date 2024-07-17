@@ -5,6 +5,8 @@ import {checkEmail, registerUser} from "@/services/user.js";
 import {loginUser} from "@/services/auth.js";
 import {useRouter} from "vue-router";
 import {isValidEmail} from "@/utils/index.js";
+import CustomInput from "@/components/CustomInput.vue";
+import CustomButton from "@/components/CustomButton.vue";
 
 const router = useRouter()
 
@@ -15,7 +17,6 @@ const passwordMatched = ref(true)
 const errors = ref({})
 
 const formValid = computed(() => {
-  console.log(Object.keys(errors.value).length)
   return email.value.length > 0 && isValidEmail(email.value) && password.value.length > 0 && passwordMatched.value && !Object.values(errors.value).some(arr => arr.length > 0)
 })
 
@@ -62,27 +63,45 @@ const register = async () => {
           <div class="card">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Регистрация</h2>
-              <form>
+              <form @submit.prevent="register">
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="email" v-model="email" required
-                         placeholder="Введите email">
+                  <CustomInput
+                      v-model="email"
+                      type="email"
+                      id="email"
+                      placeholder="Введите email"
+                      class="form-control"
+                      required
+                  />
                   <div class="text-danger" v-if="errors.hasOwnProperty('email')" v-for="error in errors['email']">
                     {{ error }}
                   </div>
                 </div>
                 <div class="form-group mb-3">
                   <label for="password" class="form-label">Пароль</label>
-                  <input type="password" class="form-control" id="password" v-model="password" required
-                         placeholder="Введите пароль">
+                  <CustomInput
+                      v-model="password"
+                      type="password"
+                      id="password"
+                      placeholder="Введите пароль"
+                      class="form-control"
+                      required
+                  />
                   <div class="text-danger" v-if="!passwordMatched">
                     Пароли не совпадают
                   </div>
                 </div>
                 <div class="form-group mb-3">
                   <label for="confirmPassword" class="form-label">Подтверждение пароля</label>
-                  <input type="password" class="form-control" id="confirmPassword" v-model="confirmPassword" required
-                         placeholder="Подтвердите пароль">
+                  <CustomInput
+                      v-model="confirmPassword"
+                      type="password"
+                      id="confirmPassword"
+                      placeholder="Подтвердите пароль"
+                      class="form-control"
+                      required
+                  />
                   <div class="text-danger" v-if="!passwordMatched">
                     Пароли не совпадают
                   </div>
@@ -90,10 +109,12 @@ const register = async () => {
                     {{ error }}
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" @click.prevent="register"
-                        :disabled="!formValid">
-                  Зарегистрироваться
-                </button>
+                <CustomButton
+                  text="Зарегистрироваться"
+                  type="submit"
+                  class="btn-block"
+                  :disabled="!formValid"
+                />
               </form>
               <div class="text-center mt-3">
                 <p>Уже есть аккаунт?
