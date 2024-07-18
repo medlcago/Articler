@@ -1,44 +1,36 @@
 <script setup>
 
 import Header from "@/components/Header.vue";
-import {ref} from "vue";
-import {loginUser} from "@/services/auth.js";
-import {useRouter} from "vue-router";
+import {onBeforeUnmount, ref} from "vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import CustomInput from "@/components/CustomInput.vue";
 import CustomButton from "@/components/CustomButton.vue";
+import {useUserStore} from "@/store/userStore.js";
+import {useErrorStore} from "@/store/errorStore.js";
 
-const router = useRouter()
+const userStore = useUserStore()
+const errorStore = useErrorStore()
 
 const email = ref("")
 const password = ref("")
-const error = ref("")
-const loading = ref(false)
 
+onBeforeUnmount(() => {
+  errorStore.$reset()
+})
 
-const login = async () => {
-  loading.value = true;
-  const user = await loginUser(email.value, password.value);
-  loading.value = false;
-  if (user) {
-    await router.replace("/profile")
-  } else {
-    error.value = "Неверный email или пароль";
-  }
-}
 </script>
 
 <template>
   <div>
     <Header/>
-    <LoadingSpinner v-if="loading"/>
+    <LoadingSpinner v-if="userStore.loading"/>
     <div class="container mt-5">
       <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
           <div class="card">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Авторизация</h2>
-              <form @submit.prevent="login">
+              <form @submit.prevent="userStore.login(email, password)">
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
                   <CustomInput
@@ -60,8 +52,8 @@ const login = async () => {
                       class="form-control"
                       required
                   />
-                  <div class="text-danger" v-if="error">
-                    {{ error }}
+                  <div class="text-danger" v-if="errorStore.error">
+                    {{ errorStore.error }}
                   </div>
                 </div>
                 <CustomButton

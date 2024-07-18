@@ -1,69 +1,61 @@
 <script setup>
-import {computed, ref, watch} from "vue";
+import {computed, onBeforeUnmount, ref, watch} from "vue";
 import Header from "@/components/Header.vue";
-import {checkEmail, registerUser} from "@/services/user.js";
-import {loginUser} from "@/services/auth.js";
-import {useRouter} from "vue-router";
+import {checkEmail} from "@/services/user.js";
 import {isValidEmail} from "@/utils/index.js";
 import CustomInput from "@/components/CustomInput.vue";
 import CustomButton from "@/components/CustomButton.vue";
+import {useUserStore} from "@/store/userStore.js";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import {useErrorStore} from "@/store/errorStore.js";
 
-const router = useRouter()
+const userStore = useUserStore()
+const errorStore = useErrorStore()
+
 
 const email = ref("")
 const password = ref("")
 const confirmPassword = ref("")
 const passwordMatched = ref(true)
-const errors = ref({})
 
 const formValid = computed(() => {
-  return email.value.length > 0 && isValidEmail(email.value) && password.value.length > 0 && passwordMatched.value && !Object.values(errors.value).some(arr => arr.length > 0)
+  return email.value.length > 0 && isValidEmail(email.value) && password.value.length > 0 && passwordMatched.value && !Object.values(errorStore.errors).some(arr => arr.length > 0)
 })
 
 watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => {
-      errors.value.password = []
+      errorStore.errors.password = []
       passwordMatched.value = newPassword.value === newConfirmPassword.value;
     },
     {deep: true}
 )
 
 watch(email, async (email) => {
-  errors.value.email = []
+  errorStore.errors.email = []
   if (isValidEmail(email)) {
     const status = await checkEmail(email)
     if (status !== 200) {
-      errors.value = {
-        email: ["Email уже используется"]
-      }
+      errorStore.errors.email = ["Email уже используется"]
     }
   }
 })
 
-const register = async () => {
-  const {data, status} = await registerUser(
-      email.value,
-      password.value
-  )
-  if (status === 201) {
-    if (await loginUser(email.value, password.value)) {
-      await router.replace("profile")
-    }
-  } else {
-    errors.value = data
-  }
-}
+onBeforeUnmount(() => {
+  errorStore.$reset()
+})
+
 </script>
 
 <template>
   <div>
     <Header/>
+    <LoadingSpinner v-if="userStore.loading"/>
     <div class="container mt-5">
       <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
           <div class="card">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Регистрация</h2>
-              <form @submit.prevent="register">
+              <form @submit.prevent="userStore.register(email, password)">
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
                   <CustomInput
@@ -74,7 +66,8 @@ const register = async () => {
                       class="form-control"
                       required
                   />
-                  <div class="text-danger" v-if="errors.hasOwnProperty('email')" v-for="error in errors['email']">
+                  <div class="text-danger" v-if="errorStore.errors.hasOwnProperty('email')"
+                       v-for="error in errorStore.errors['email']">
                     {{ error }}
                   </div>
                 </div>
@@ -105,15 +98,16 @@ const register = async () => {
                   <div class="text-danger" v-if="!passwordMatched">
                     Пароли не совпадают
                   </div>
-                  <div class="text-danger" v-if="errors.hasOwnProperty('password')" v-for="error in errors['password']">
+                  <div class="text-danger" v-if="errorStore.errors.hasOwnProperty('password')"
+                       v-for="error in errorStore.errors['password']">
                     {{ error }}
                   </div>
                 </div>
                 <CustomButton
-                  text="Зарегистрироваться"
-                  type="submit"
-                  class="btn-block"
-                  :disabled="!formValid"
+                    text="Зарегистрироваться"
+                    type="submit"
+                    class="btn-block"
+                    :disabled="!formValid"
                 />
               </form>
               <div class="text-center mt-3">

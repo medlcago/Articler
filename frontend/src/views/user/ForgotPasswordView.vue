@@ -1,20 +1,28 @@
 <script setup>
 
 import Header from "@/components/Header.vue";
-import {ref} from "vue";
-import {resetPassword} from "@/services/user.js";
+import {onBeforeUnmount, ref} from "vue";
 import Alert from "@/components/Alert.vue";
 import {isValidEmail} from "@/utils/index.js";
 import CustomInput from "@/components/CustomInput.vue";
 import CustomButton from "@/components/CustomButton.vue";
+import {useUserStore} from "@/store/userStore.js";
+import {useErrorStore} from "@/store/errorStore.js";
 
-const messageSent = ref(null);
+const userStore = useUserStore()
+const errorStore = useErrorStore()
+
+const status = ref(400);
 const email = ref("");
 
 const sendResetPasswordMessage = async () => {
-  const {status} = await resetPassword(email.value)
-  messageSent.value = status === 200;
+  status.value = await userStore.resetUserPassword(email.value)
 }
+
+onBeforeUnmount(() => {
+  errorStore.$reset()
+})
+
 </script>
 
 <template>
@@ -24,20 +32,12 @@ const sendResetPasswordMessage = async () => {
       <div class="col-md-6">
 
         <Alert
-            v-if="messageSent===true"
+            v-if="errorStore.error"
             class="text-center"
             dismissible
-            content="Письмо для восстановления пароля отправлено на указанный вами адрес электронной почты"
-            @close="messageSent = null"
-        />
-
-        <Alert
-            v-if="messageSent===false"
-            class="text-center"
-            dismissible
-            color="danger"
-            content="Адрес не найден в системе"
-            @close="messageSent = null"
+            :content="errorStore.error"
+            :color="`${status===200?'primary' : 'danger'}`"
+            @close="errorStore.error=''"
         />
 
         <div class="card">
@@ -61,6 +61,11 @@ const sendResetPasswordMessage = async () => {
                   class="btn-block"
                   :disabled="!isValidEmail(email)"
               />
+              <div class="text-center mt-3">
+                <p>
+                  <RouterLink :to="{name: 'main'}">На главную</RouterLink>
+                </p>
+              </div>
             </form>
           </div>
         </div>
@@ -72,9 +77,5 @@ const sendResetPasswordMessage = async () => {
 <style scoped>
 .card {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.btn {
-  border-radius: 10px;
 }
 </style>

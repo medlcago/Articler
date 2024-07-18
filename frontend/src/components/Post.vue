@@ -1,12 +1,10 @@
 <script setup>
 import {computed} from "vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
-import {useUser} from "@/hooks/user.js";
-import {deletePost} from "@/services/post.js";
+import {useUserStore} from "@/store/userStore.js";
 
 
-const props = defineProps(["post"]
-);
+const props = defineProps(["post"])
 
 const emits = defineEmits(["delete"])
 
@@ -14,13 +12,7 @@ const paragraphs = computed(() => {
   return props.post.description.split("\n");
 })
 
-const {user} = useUser();
-
-const deleteAndClose = async () => {
-  const {status} = await deletePost(props.post.id);
-  const message = status === 204 ? "Пост успешно удален" : "Не удалось удалить пост";
-  emits("delete", {status, message});
-}
+const {currentUser} = useUserStore();
 
 </script>
 
@@ -37,7 +29,7 @@ const deleteAndClose = async () => {
           <h6 class="card-subtitle mb-2">
             <div class="d-flex justify-content-between">
               <a :href="`mailto:${post.author.email}`">{{ post.author.email }}</a>
-              <span class="text-danger delete-post" title="Удалить" v-if="post.author.id === user.id">
+              <span class="text-danger delete-post" title="Удалить" v-if="post.author.id === currentUser.id">
                 <i class="bi bi-trash" data-toggle="modal"
                    :data-target="`#deletePostModal-${post.id}`"></i>
               </span>
@@ -74,7 +66,7 @@ const deleteAndClose = async () => {
       name="deletePostModal"
       :title="`${post.title}`"
       body="Вы уверены, что хотите удалить пост?"
-      @onConfirm="deleteAndClose"
+      @onConfirm="emits('delete', props.post.id)"
   />
 </template>
 

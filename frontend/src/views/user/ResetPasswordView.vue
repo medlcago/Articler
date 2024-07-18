@@ -2,11 +2,19 @@
 import Header from "@/components/Header.vue";
 import {useRoute, useRouter} from "vue-router";
 import {resetPasswordConfirm, validateToken} from "@/services/user.js";
-import {computed, ref, watch} from "vue";
+import {computed, onBeforeUnmount, ref, watch} from "vue";
 import Message from "@/components/Message.vue";
+import CustomInput from "@/components/CustomInput.vue";
+import CustomButton from "@/components/CustomButton.vue";
+import {useUserStore} from "@/store/userStore.js";
+import {useErrorStore} from "@/store/errorStore.js";
 
 const route = useRoute();
 const router = useRouter()
+
+const userStore = useUserStore()
+const errorStore = useErrorStore()
+
 const showPage = ref(false);
 
 const token = route.query.token;
@@ -29,15 +37,13 @@ handleValidateToken()
 const password = ref("");
 const confirmPassword = ref("");
 const passwordMatched = ref(true);
-const resetPasswordSuccess = ref(null);
 
 const formValid = computed(() => {
   return password.value.length >= 8 && passwordMatched.value;
 })
 
 const changePassword = async () => {
-  const {status} = await resetPasswordConfirm(token, password.value)
-  resetPasswordSuccess.value = status === 200;
+  await userStore.changeUserPassword(token, password.value)
 }
 
 watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => {
@@ -45,6 +51,10 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
     },
     {deep: true}
 )
+
+onBeforeUnmount(() => {
+  errorStore.$reset()
+})
 
 </script>
 <template>
@@ -61,7 +71,7 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
         <div class="col-md-6">
 
           <Message
-              v-if="resetPasswordSuccess===false"
+              v-if="errorStore.error"
               title="Failed to change the password"
               title-color="danger"
           >
@@ -75,7 +85,7 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
           </Message>
 
           <Message
-              v-else-if="resetPasswordSuccess===true"
+              v-else
               title="Password successfully changed"
               title-color="success"
           >
@@ -83,7 +93,8 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
               Your password has been successfully reset.
               <br>
               You can now
-              <RouterLink to="/">return to the home page</RouterLink>.
+              <RouterLink to="/">return to the home page</RouterLink>
+              .
             </template>
           </Message>
 
@@ -93,30 +104,35 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
               <form @submit.prevent="changePassword">
                 <div class="form-group">
                   <label for="password">Пароль</label>
-                  <input
+                  <CustomInput
                       v-model="password"
                       type="password"
                       class="form-control"
                       id="password"
+                      placeholder="Введите новый пароль"
                       required
                   />
                 </div>
                 <div class="form-group">
                   <label for="confirmPassword">Подтверждение пароля</label>
-                  <input
+                  <CustomInput
                       v-model="confirmPassword"
                       type="password"
                       class="form-control"
                       id="confirmPassword"
+                      placeholder="Подтвердите пароль"
                       required
                   />
                   <div class="text-danger" v-if="!passwordMatched">
                     Пароли не совпадают
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block" :disabled="!formValid">
-                  Установить новый пароль
-                </button>
+                <CustomButton
+                  text="Установить новый пароль"
+                  type="submit"
+                  class="btn-block"
+                  :disabled="!formValid"
+                />
               </form>
             </div>
           </div>
@@ -129,9 +145,5 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
 <style scoped>
 .card {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.btn {
-  border-radius: 10px;
 }
 </style>

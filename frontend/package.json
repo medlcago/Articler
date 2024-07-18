@@ -13,9 +13,10 @@
     "@vueuse/core": "^10.11.0",
     "axios": "^1.7.2",
     "bootstrap": "^4.6.2",
+    "lodash.clonedeep": "^4.5.0",
+    "pinia": "^2.1.7",
     "vue": "^3.4.31",
-    "vue-router": "^4.3.3",
-    "vuex": "^4.0.2"
+    "vue-router": "^4.3.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",

@@ -1,26 +1,16 @@
 <script setup>
-import {logoutUser} from "@/services/auth.js";
-import {useRouter} from "vue-router";
 import {useTitle} from "@vueuse/core";
 import {onMounted} from "vue";
-import {useUser} from "@/hooks/user.js";
-import {useAuth} from "@/hooks/auth.js";
+import {useUserStore} from "@/store/userStore.js";
+import {usePageStore} from "@/store/pageStore.js";
 
-const router = useRouter()
+
+const {currentUser, isLoggedIn, logout} = useUserStore()
+const {currentPage} = usePageStore()
 const pageTitle = useTitle()
 
-const {user, currentPage} = useUser()
-const {isAuthenticated} = useAuth()
-
-const logout = () => {
-  logoutUser()
-  router.replace({
-    name: 'login'
-  })
-}
-
 onMounted(() => {
-  pageTitle.value = currentPage.value.shortName
+  pageTitle.value = currentPage.shortName
 })
 
 
@@ -42,7 +32,7 @@ onMounted(() => {
                 Главная
               </RouterLink>
             </li>
-            <template v-if="!isAuthenticated">
+            <template v-if="!isLoggedIn">
               <li class="nav-item">
                 <RouterLink :to="{name: 'login'}" class="nav-link" :class="{active: currentPage.name  ===  'login'}">
                   Вход
@@ -55,11 +45,11 @@ onMounted(() => {
               </li>
             </template>
 
-            <template v-if="isAuthenticated">
+            <template v-if="isLoggedIn">
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                    data-toggle="dropdown" aria-expanded="false" :class="{active: currentPage.name  ===  'profile'}">
-                  {{ user.email }}
+                  {{ currentUser.email }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                   <li>

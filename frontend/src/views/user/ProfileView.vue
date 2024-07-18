@@ -1,35 +1,33 @@
 <script setup>
 
 import Header from "@/components/Header.vue";
-import {computed, onMounted, ref} from "vue";
-import {getPosts} from "@/services/post.js";
+import {computed, onBeforeUnmount, onMounted, onUnmounted, ref} from "vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import {useTextareaAutosize} from "@vueuse/core";
 import {getAvatarUrl} from "@/utils/index.js";
-import {changeProfile} from "@/services/user.js";
-import {POST_PROFILE_LIMIT} from "@/config.js";
 import Modal from "@/components/Modal.vue";
-import {useUser} from "@/hooks/user.js";
+import CustomButton from "@/components/CustomButton.vue";
+import CustomTextarea from "@/components/CustomTextarea.vue";
+import {useUserStore} from "@/store/userStore.js";
+import {usePostStore} from "@/store/postStore.js";
+import {useErrorStore} from "@/store/errorStore.js";
 
-const {user} = useUser()
+const userStore = useUserStore()
+const postStore = usePostStore()
+const errorStore = useErrorStore()
 
-const {textarea, input} = useTextareaAutosize({styleProp: 'minHeight'})
-
-
-const posts = ref({})
 const editProfile = ref(false)
-const loading = ref(true)
 const previewImage = ref(null)
 
 
 const currentStatus = computed(() => {
-  return user.value.profile.status
+  return userStore.currentUser.status
 })
-input.value = currentStatus.value
+
+const userStatus = ref(currentStatus.value)
 
 const cancelEditProfile = () => {
   editProfile.value = false;
-  input.value = currentStatus.value;
+  userStatus.value = currentStatus.value;
 }
 
 const handleFileUpload = (event) => {
@@ -38,39 +36,40 @@ const handleFileUpload = (event) => {
   previewImage.value = URL.createObjectURL(file);
 }
 
-const saveProfile = async () => {
+const updateProfile = async () => {
   editProfile.value = false;
-  if (input.value !== currentStatus.value) {
-    const {status} = await changeProfile(user.value.id, {
-      "profile": {
-        "status": input.value
-      }
+  if (userStatus.value !== currentStatus.value) {
+    const status = await userStore.updateUserData({
+      status: userStatus.value
     })
     if (status === 200) {
-      user.value.profile.status = input.value
+      userStore.currentUser.status = userStatus.value
+    } else {
+      userStatus.value = currentStatus.value
     }
   }
 }
 
 onMounted(async () => {
-  posts.value = await getPosts({
-    limit: POST_PROFILE_LIMIT,
-    author__id: user.value.id,
-  })
-  loading.value = false;
+  await postStore.fetchUserPosts(userStore.currentUser.id)
 })
+
+onBeforeUnmount(() => {
+  errorStore.$reset()
+})
+
 </script>
 
 <template>
   <Header/>
-  <LoadingSpinner v-if="loading"/>
+  <LoadingSpinner v-if="postStore.loading"/>
   <div class="container mt-5" v-else>
     <div class="row">
       <div class="col-md-4 profile-column">
 
         <div class="d-flex justify-content-center">
-          <template v-if="user.profile.avatar">
-            <img :src="getAvatarUrl(user.profile.avatar)"
+          <template v-if="userStore.currentUser.avatar">
+            <img :src="getAvatarUrl(userStore.currentUser.avatar)"
                  class="img-fluid profile-picture mb-2 ml-3"
                  alt="Фото профиля" data-toggle="modal" data-target="#uploadPhotoModal">
           </template>
@@ -83,46 +82,60 @@ onMounted(async () => {
         </div>
 
         <div class="email">
-          <h2 id="user-email">{{ user.email }}</h2>
+          <h2 id="user-email">{{ userStore.currentUser.email }}</h2>
         </div>
         <div class="border-bottom w-100 my-2"></div>
         <div class="profile-info" v-if="!editProfile">
           <div class="status">
-            <p id="user-status" v-if="currentStatus">{{ currentStatus }}</p>
+            <div id="user-status" v-if="currentStatus">{{ currentStatus }}</div>
+            <div class="text-danger"
+                 v-if="errorStore.errors.hasOwnProperty('status')"
+                 v-for="error in errorStore.errors['status']">
+              {{ error }}
+            </div>
           </div>
-          <div class="edit-profile">
-            <button class="btn btn-primary btn-block" @click="editProfile=true">
-              Edit profile
-            </button>
+          <div class="edit-profile mt-2">
+            <CustomButton
+                text="Редактировать профиль"
+                class="btn-block"
+                @click="editProfile=true"
+            />
           </div>
         </div>
 
         <!-- Editing a profile-->
         <div class="form-group" v-else>
-            <textarea
-                maxlength="128"
-                @keydown.enter.prevent
-                ref="textarea"
-                v-model.trim="input"
-                class="form-control resize-none rounded border-dark"
-                placeholder="Enter status"
-                id="status"
-                rows="3"
-            />
+          <CustomTextarea
+              maxlength="128"
+              @keydown.enter.prevent
+              v-model="userStatus"
+              class="form-control border-dark"
+              placeholder="Enter status"
+              id="status"
+              rows="3"
+          />
           <div class="d-flex justify-content-start mt-2">
-            <button class="btn btn-primary btn-sm mr-1" @click="saveProfile">Сохранить</button>
-            <button class="btn btn-secondary btn-sm" @click="cancelEditProfile">Отмена</button>
+            <CustomButton
+                text="Сохранить"
+                class="btn-sm mr-1"
+                @click="updateProfile"
+            />
+            <CustomButton
+                text="Отмена"
+                color="secondary"
+                class="btn-sm"
+                @click="cancelEditProfile"
+            />
           </div>
         </div>
-
 
       </div>
 
       <div class="col-md-8 posts-column">
-        <template v-if="posts.results.length">
+        <template v-if="postStore.posts.results.length">
           <h3>10 последних постов</h3>
           <div class="posts">
-            <div class="list-group mb-1" v-for="post in posts.results" :key="post.id">
+            <div class="list-group mb-1" v-for="post in postStore.posts.results" :key="post.id">
               <RouterLink :to="`/post/${post.id}`" class="list-group-item list-group-item-action">
                 <div class="d-flex justify-content-between text-break">
                   <h5 class="mb-1">
@@ -143,6 +156,7 @@ onMounted(async () => {
       id="uploadPhotoModal"
       name="uploadPhotoModal"
       title="Загрузка изображения"
+      confirm-text="Сохранить изменения"
   >
     <template #body>
       <form>
@@ -157,11 +171,6 @@ onMounted(async () => {
       <div class="img-container" v-if="previewImage">
         <img :src="previewImage" alt="Загруженное фото"/>
       </div>
-
-    </template>
-    <template #footer>
-      <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-      <button type="button" class="btn btn-primary">Сохранить изменения</button>
     </template>
   </Modal>
 
@@ -176,15 +185,10 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-.edit-profile button {
-  border-radius: 10px;
-}
-
 .profile-column {
   margin-left: -100px;
   margin-right: 100px;
 }
-
 
 textarea {
   -ms-overflow-style: none;

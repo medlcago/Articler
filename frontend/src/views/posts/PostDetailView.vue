@@ -2,61 +2,48 @@
 
 import Header from "@/components/Header.vue";
 import Post from "@/components/Post.vue";
-import {useRoute, useRouter} from "vue-router";
-import {onMounted, ref} from "vue";
-import {getPost} from "@/services/post.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import {usePostStore} from "@/store/postStore.js";
+import {useRouter} from "vue-router";
+import {onBeforeUnmount} from "vue";
+import {useErrorStore} from "@/store/errorStore.js";
 
 const router = useRouter()
-const route = useRoute()
+const postStore = usePostStore()
+const errorStore = useErrorStore()
 
-const post = ref({})
-const loading = ref(true)
+postStore.fetchPost()
 
-const alertMessage = ref("");
-const closeAlert = () => {
-  alertMessage.value = "";
-}
-
-const deletePost = (event) => {
-  const {status, message} = event
+const deletePost = async (postId) => {
+  const status = await postStore.removePost(postId)
   if (status === 204) {
-    router.replace({name: "main"})
-  } else {
-    alertMessage.value = message
+    await router.replace({name: "main"})
   }
 }
 
-onMounted(async () => {
-  loading.value = true;
-  const postId = route.params.id;
-  const data = await getPost(postId)
-  if (data) {
-    post.value = data;
-  } else {
-    await router.replace({name: "notFound"})
-  }
-  loading.value = false;
+onBeforeUnmount(() => {
+  errorStore.$reset()
 })
+
 </script>
 
 <template>
   <Header/>
-  <LoadingSpinner v-if="loading"/>
+  <LoadingSpinner v-if="postStore.loading"/>
   <div class="container mt-3" v-else>
 
-    <div class="mt-2 alert alert-info alert-dismissible fade show" role="alert" v-if="alertMessage">
+    <div class="mt-2 alert alert-info alert-dismissible fade show" role="alert" v-if="errorStore.error">
       <div class="text-center font-weight-bold">
-        {{ alertMessage }}
+        {{ errorStore.error }}
       </div>
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true" @click="closeAlert">&times;</span>
+        <span aria-hidden="true" @click="errorStore.error=''">&times;</span>
       </button>
     </div>
 
     <div class="post">
       <Post
-          :post="post"
+          :post="postStore.post"
           @delete="deletePost"
       >
         <template #footer>

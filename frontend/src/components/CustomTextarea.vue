@@ -20,6 +20,8 @@ const props = defineProps({
 })
 
 const {input, textarea} = useTextareaAutosize({styleProp: 'minHeight'})
+
+input.value = props.modelValue
 const inputRef = ref(input);
 
 watch(() => props.modelValue, (value) => {

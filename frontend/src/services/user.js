@@ -51,7 +51,7 @@ export const registerUser = async (email, password) => {
     }
 }
 
-export const changeProfile = async (userId, data) => {
+export const changeUserData = async (userId, data) => {
     try {
         const access_token = parseCookie("access_token");
         const config = {}
@@ -64,7 +64,7 @@ export const changeProfile = async (userId, data) => {
             status: response.status
         }
     } catch (error) {
-        console.log("Failed to edit profile");
+        console.log("Failed to change user data");
         return {
             data: error.response.data,
             status: error.response.status

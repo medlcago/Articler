@@ -1,22 +1,10 @@
-from django.contrib.auth import get_user_model
-from django.db import transaction
-from django.db.models.signals import post_save
+from django.conf import settings
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django_rest_passwordreset.signals import reset_password_token_created, post_password_reset
 
-from config.settings import RESET_PASSWORD_URL
-from .models import Profile
-
-User = get_user_model()
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if not hasattr(instance, "profile"):
-        with transaction.atomic():
-            Profile.objects.create(user=instance)
+RESET_PASSWORD_URL = getattr(settings, "RESET_PASSWORD_URL")
 
 
 @receiver(reset_password_token_created)

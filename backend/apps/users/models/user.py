@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.password_validation import validate_password
@@ -5,6 +6,12 @@ from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+
+from common.validators import validate_image
+
+
+def get_avatar_upload_path(instance, filename: str) -> str:
+    return settings.AVATARS_PATH.format(user_id=instance.id, filename=filename)
 
 
 class UserManager(BaseUserManager):
@@ -65,6 +72,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=False,
         help_text=_("Designates whether the user can log into this admin site."),
     )
+    status = models.CharField(max_length=128, blank=True, null=True)
+    avatar = models.ImageField(upload_to=get_avatar_upload_path, blank=True, null=True,
+                               validators=[
+                                   validate_image
+                               ])
 
     objects = UserManager()
 
@@ -79,6 +91,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_instance = User.objects.get(pk=self.pk)
+            if old_instance.avatar and self.avatar != old_instance.avatar:
+                old_instance.avatar.delete(save=False)
+        super().save(*args, **kwargs)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
