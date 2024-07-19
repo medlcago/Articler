@@ -1,6 +1,8 @@
 volumes:
   database-data:
   pgadmin-data:
+  redis-data:
+  backend-data:
   static-volume:
   media-volume:
 
@@ -38,8 +40,20 @@ services:
     volumes:
       - static-volume:/backend/static
       - media-volume:/backend/media
+      - backend-data:/backend
     depends_on:
       - db
+
+  celery:
+    container_name: celery
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A config worker -l INFO
+    volumes:
+      - backend-data:/backend
+    depends_on:
+      - articler
 
   nginx:
     container_name: nginx_container
@@ -69,3 +83,14 @@ services:
       - "${PGADMIN_EXTERNAL_PORT}:${PGADMIN_PORT}"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
+
+  redis:
+    container_name: redis_container
+    image: redis:7.2.4-alpine
+    restart: always
+    ports:
+      - "${REDIS_EXTERNAL_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis-data:/data
+    depends_on:
+      - articler
