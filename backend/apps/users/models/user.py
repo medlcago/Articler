@@ -109,3 +109,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def refresh_token(self):
         return str(RefreshToken.for_user(self))
+
+    def get_avatar_url(self, request):
+        if self.avatar and hasattr(self.avatar, "url"):
+            return request.build_absolute_uri(self.avatar.url)

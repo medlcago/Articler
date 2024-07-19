@@ -5,6 +5,12 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar = serializers.SerializerMethodField(source="get_avatar_url")
+
+    def get_avatar(self, obj):
+        request = self.context.get("request")
+        return obj.get_avatar_url(request)
+
     class Meta:
         model = User
         fields = (
