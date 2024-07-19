@@ -1,10 +1,10 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from ...users.serializers import UserSerializer
-
 
 class ObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        data["user"] = UserSerializer(self.user).data
+        token = self.get_token(self.user)
+        data["access_exp"] = token.access_token.payload["exp"]
+        data["refresh_exp"] = token.payload["exp"]
         return data

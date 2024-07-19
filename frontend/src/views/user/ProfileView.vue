@@ -1,15 +1,15 @@
 <script setup>
 
 import Header from "@/components/Header.vue";
-import {computed, onBeforeUnmount, onMounted, onUnmounted, ref} from "vue";
+import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import {getAvatarUrl} from "@/utils/index.js";
 import Modal from "@/components/Modal.vue";
 import CustomButton from "@/components/CustomButton.vue";
 import CustomTextarea from "@/components/CustomTextarea.vue";
 import {useUserStore} from "@/store/userStore.js";
 import {usePostStore} from "@/store/postStore.js";
 import {useErrorStore} from "@/store/errorStore.js";
+import PostList from "@/components/PostList.vue";
 
 const userStore = useUserStore()
 const postStore = usePostStore()
@@ -39,11 +39,11 @@ const handleFileUpload = (event) => {
 const updateProfile = async () => {
   editProfile.value = false;
   if (userStatus.value !== currentStatus.value) {
-    const status = await userStore.updateUserData({
+    const {status, result} = await userStore.updateUserData({
       status: userStatus.value
     })
     if (status === 200) {
-      userStore.currentUser.status = userStatus.value
+      userStore.currentUser = result
     } else {
       userStatus.value = currentStatus.value
     }
@@ -69,7 +69,7 @@ onBeforeUnmount(() => {
 
         <div class="d-flex justify-content-center">
           <template v-if="userStore.currentUser.avatar">
-            <img :src="getAvatarUrl(userStore.currentUser.avatar)"
+            <img :src="userStore.currentUser.avatar"
                  class="img-fluid profile-picture mb-2 ml-3"
                  alt="Фото профиля" data-toggle="modal" data-target="#uploadPhotoModal">
           </template>
@@ -86,8 +86,8 @@ onBeforeUnmount(() => {
         </div>
         <div class="border-bottom w-100 my-2"></div>
         <div class="profile-info" v-if="!editProfile">
-          <div class="status">
-            <div id="user-status" v-if="currentStatus">{{ currentStatus }}</div>
+          <div class="status" v-if="currentStatus">
+            <div id="user-status" class="text-wrap text-break">{{ currentStatus }}</div>
             <div class="text-danger"
                  v-if="errorStore.errors.hasOwnProperty('status')"
                  v-for="error in errorStore.errors['status']">
@@ -135,15 +135,9 @@ onBeforeUnmount(() => {
         <template v-if="postStore.posts.results.length">
           <h3>10 последних постов</h3>
           <div class="posts">
-            <div class="list-group mb-1" v-for="post in postStore.posts.results" :key="post.id">
-              <RouterLink :to="`/post/${post.id}`" class="list-group-item list-group-item-action">
-                <div class="d-flex justify-content-between text-break">
-                  <h5 class="mb-1">
-                    {{ post.title }}
-                  </h5>
-                </div>
-              </RouterLink>
-            </div>
+            <PostList
+                :posts="postStore.posts.results"
+            />
           </div>
         </template>
         <h3 v-else>На данный момент вы не написали ни один пост &#9785;&#65039;</h3>
@@ -198,11 +192,6 @@ textarea {
 
 textarea::-webkit-scrollbar {
   display: none;
-}
-
-#user-status {
-  word-wrap: break-word;
-  white-space: pre-wrap;
 }
 
 .img-container {

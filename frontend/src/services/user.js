@@ -1,9 +1,10 @@
 import axios from "axios";
 import {parseCookie} from "@/utils/index.js";
+import {BACKEND_URL} from "@/config.js";
 
 
 const instance = axios.create({
-    baseURL: 'http://127.0.0.1:8080/api/v1/users'
+    baseURL: `${BACKEND_URL}/api/v1/users`
 });
 
 export const checkEmail = async (email) => {

@@ -60,13 +60,17 @@ export const useUserStore = defineStore("user", () => {
 
     const fetchCurrentUser = async () => {
         currentUser.value = await getUser()
+        return currentUser
     }
     const updateUserData = async (data) => {
-        const {data: errors, status} = await changeUserData(currentUser.value.id, data)
+        const {data: result, status} = await changeUserData(currentUser.value.id, data)
         if (status !== 200) {
-            errorStore.errors = errors
+            errorStore.errors = result
         }
-        return status
+        return {
+            status,
+            result
+        }
     }
 
     const resetUserPassword = async (email) => {

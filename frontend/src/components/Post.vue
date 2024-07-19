@@ -2,14 +2,25 @@
 import {computed} from "vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import {useUserStore} from "@/store/userStore.js";
+import {createPostUrl} from "@/utils/index.js";
 
 
-const props = defineProps(["post"])
+const props = defineProps({
+  post: {
+    type: Object,
+    required: true
+  },
+  detail: {
+    type: Boolean,
+    default: false
+  }
+})
 
 const emits = defineEmits(["delete"])
 
 const paragraphs = computed(() => {
-  return props.post.description.split("\n");
+  const description = props.detail ? props.post.description : props.post.truncated_description
+  return description.split("\n");
 })
 
 const {currentUser} = useUserStore();
@@ -17,7 +28,7 @@ const {currentUser} = useUserStore();
 </script>
 
 <template>
-  <div class="card mb-4 mt-3">
+  <div class="card mb-2">
     <slot name="header">
 
     </slot>
@@ -39,7 +50,7 @@ const {currentUser} = useUserStore();
 
         <slot name="title">
           <h5 class="card-title">
-            <RouterLink :to="`/post/${post.id}/`" class="text-dark">{{ post.title }}</RouterLink>
+            <RouterLink :to="createPostUrl(post)" class="text-dark">{{ post.title }}</RouterLink>
           </h5>
         </slot>
 
@@ -50,6 +61,7 @@ const {currentUser} = useUserStore();
                 <p>{{ paragraph }}</p>
               </div>
             </template>
+            <a v-if="!detail" class="float-right" :href="createPostUrl(post)">Читать продолжение</a>
           </div>
         </slot>
 
@@ -71,7 +83,7 @@ const {currentUser} = useUserStore();
 </template>
 
 <style scoped>
-a {
+.card-title a {
   text-decoration: none;
 }
 

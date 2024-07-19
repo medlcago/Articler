@@ -76,7 +76,7 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- List of posts-->
-    <div class="posts">
+    <div class="posts mt-2">
       <template v-if="postStore.totalRecords > 0">
         <Post
             v-for="post in postStore.posts.results"
@@ -117,6 +117,7 @@ onBeforeUnmount(() => {
             id="title"
             placeholder="Введите заголовок"
             class="form-control"
+            maxlength="255"
         />
         <div class="text-danger" v-if="errorStore.errors.hasOwnProperty('title')"
              v-for="error in errorStore.errors['title']">

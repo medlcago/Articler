@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from .permissions import IsOwnerOrCreateOnly
-from .serializers import UserSerializer
+from .serializers import UserSerializer, EmailSerializer
 
 User = get_user_model()
 
@@ -24,21 +24,11 @@ class UserViewSet(mixins.CreateModelMixin,
 
     @action(detail=False, methods=["GET"])
     def me(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
     @action(detail=False, methods=["POST"], permission_classes=[AllowAny])
     def email_available(self, request):
-        email = self.request.data.get("email")
-        if not email or not isinstance(email, str):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(email=email).exists():
-            return Response(status=status.HTTP_409_CONFLICT)
-        return Response(status=status.HTTP_200_OK)
-
-    def perform_update(self, serializer):
-        profile_data = self.request.data.get("profile")
-        if profile_data:
-            serializer.save(profile=profile_data)
-        else:
-            serializer.save()
+        serializer = EmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)

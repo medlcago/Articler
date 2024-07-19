@@ -1,8 +1,9 @@
 import axios from "axios";
 import {deleteCookies, parseCookie, setCookie} from "@/utils/index.js";
+import {BACKEND_URL} from "@/config.js";
 
 const instance = axios.create({
-    baseURL: "http://127.0.0.1:8080/api/v1/auth/token"
+    baseURL: `${BACKEND_URL}/api/v1/auth/token`
 });
 
 

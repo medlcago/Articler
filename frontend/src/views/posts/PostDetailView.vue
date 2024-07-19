@@ -45,6 +45,7 @@ onBeforeUnmount(() => {
       <Post
           :post="postStore.post"
           @delete="deletePost"
+          detail
       >
         <template #footer>
           <div class="d-flex justify-content-end">

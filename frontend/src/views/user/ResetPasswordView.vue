@@ -1,7 +1,7 @@
 <script setup>
 import Header from "@/components/Header.vue";
 import {useRoute, useRouter} from "vue-router";
-import {resetPasswordConfirm, validateToken} from "@/services/user.js";
+import {validateToken} from "@/services/user.js";
 import {computed, onBeforeUnmount, ref, watch} from "vue";
 import Message from "@/components/Message.vue";
 import CustomInput from "@/components/CustomInput.vue";
@@ -37,13 +37,14 @@ handleValidateToken()
 const password = ref("");
 const confirmPassword = ref("");
 const passwordMatched = ref(true);
+const status = ref(400)
 
 const formValid = computed(() => {
   return password.value.length >= 8 && passwordMatched.value;
 })
 
 const changePassword = async () => {
-  await userStore.changeUserPassword(token, password.value)
+  status.value = await userStore.changeUserPassword(token, password.value)
 }
 
 watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => {
@@ -71,7 +72,7 @@ onBeforeUnmount(() => {
         <div class="col-md-6">
 
           <Message
-              v-if="errorStore.error"
+              v-if="status!==200 && errorStore.error"
               title="Failed to change the password"
               title-color="danger"
           >
@@ -85,7 +86,7 @@ onBeforeUnmount(() => {
           </Message>
 
           <Message
-              v-else
+              v-else-if="status===200"
               title="Password successfully changed"
               title-color="success"
           >
@@ -128,10 +129,10 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
                 <CustomButton
-                  text="Установить новый пароль"
-                  type="submit"
-                  class="btn-block"
-                  :disabled="!formValid"
+                    text="Установить новый пароль"
+                    type="submit"
+                    class="btn-block"
+                    :disabled="!formValid"
                 />
               </form>
             </div>

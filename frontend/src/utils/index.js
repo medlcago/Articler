@@ -1,8 +1,15 @@
-import {BACKEND_URL} from "@/config.js";
+export const createPostUrl = (post) => {
+    return `/post/${post.id}/`
+}
 
-export const getAvatarUrl = (avatarPath) => {
-    return `${BACKEND_URL}${avatarPath}`;
-};
+export const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 export const parseCookie = (cookieName) => {
     const cookies = document.cookie.split(";");
     for (let i = 0; i < cookies.length; i++) {

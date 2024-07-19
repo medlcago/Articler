@@ -17,6 +17,7 @@ const email = ref("");
 
 const sendResetPasswordMessage = async () => {
   status.value = await userStore.resetUserPassword(email.value)
+  email.value = "";
 }
 
 onBeforeUnmount(() => {
