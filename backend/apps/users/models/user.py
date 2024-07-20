@@ -2,11 +2,11 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.password_validation import validate_password
-from django.core.mail import send_mail
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+from apps.users.tasks import send_email_user
 from common.validators import validate_image
 
 
@@ -100,7 +100,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+        send_email_user.delay(
+            email=self.email,
+            subject=subject,
+            message=message,
+            from_email=from_email,
+            **kwargs
+        )
 
     @property
     def access_token(self):
