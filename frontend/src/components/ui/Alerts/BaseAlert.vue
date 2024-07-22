@@ -13,24 +13,23 @@ const props = defineProps({
   dismissible: {
     type: Boolean,
     default: false,
-  },
-  color: {
-    type: String,
-    default: 'primary',
   }
 })
 </script>
 
 <template>
-  <div class="alert fade show" role="alert" :class="[dismissible? 'alert-dismissible' : '', 'alert-' + color]">
+  <div class="alert fade show text-center" role="alert" :class="[dismissible? 'alert-dismissible' : '']">
     <slot name="heading">
       <h4 v-if="heading" class="alert-heading">{{ heading }}</h4>
     </slot>
     <slot name="content">
-      {{ content }}
+      <div class="font-weight-bold">
+        {{ content }}
+      </div>
     </slot>
     <slot name="dismissible">
-      <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close" @click="emits('close')">
+      <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"
+              @click="emits('close')">
         <span aria-hidden="true">&times;</span>
       </button>
     </slot>

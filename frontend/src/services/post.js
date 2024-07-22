@@ -41,7 +41,7 @@ export const getPosts = async (filters = {}) => {
 }
 
 
-export const createPost = async (title, description, is_published) => {
+export const createPost = async (data) => {
     try {
         const access_token = parseCookie("access_token");
         const config = {
@@ -50,7 +50,7 @@ export const createPost = async (title, description, is_published) => {
 
             }
         }
-        const response = await instance.post("/", {title, description, is_published}, config);
+        const response = await instance.post("/", data, config);
         return {
             data: response.data,
             status: response.status

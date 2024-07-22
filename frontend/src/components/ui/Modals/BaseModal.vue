@@ -1,5 +1,5 @@
 <script setup>
-import CustomButton from "@/components/CustomButton.vue";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
 
 defineProps({
   id: {
@@ -66,13 +66,13 @@ const emits = defineEmits(["confirm", "close"]);
         </div>
         <div class="modal-footer">
           <slot name="footer">
-            <CustomButton
+            <BaseButton
                 :text="closeText"
                 :class="[closeColor ? 'btn-' + closeColor: '']"
                 @click="emits('close')"
                 data-dismiss="modal"
             />
-            <CustomButton
+            <BaseButton
                 :text="confirmText"
                 :class="[confirmColor ? 'btn-' + confirmColor: '']"
                 @click="emits('confirm')"

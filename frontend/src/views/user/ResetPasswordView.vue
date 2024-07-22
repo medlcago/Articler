@@ -1,19 +1,21 @@
 <script setup>
-import Header from "@/components/Header.vue";
+import Header from "@/components/layouts/Header.vue";
 import {useRoute, useRouter} from "vue-router";
 import {validateToken} from "@/services/user.js";
 import {computed, onBeforeUnmount, ref, watch} from "vue";
 import Message from "@/components/Message.vue";
-import CustomInput from "@/components/CustomInput.vue";
-import CustomButton from "@/components/CustomButton.vue";
 import {useUserStore} from "@/store/userStore.js";
 import {useErrorStore} from "@/store/errorStore.js";
+import {useMessageStore} from "@/store/messageStore.js";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
+import BaseInput from "@/components/ui/Inputs/BaseInput.vue";
 
 const route = useRoute();
 const router = useRouter()
 
 const userStore = useUserStore()
 const errorStore = useErrorStore()
+const messageStore = useMessageStore()
 
 const showPage = ref(false);
 
@@ -37,15 +39,10 @@ handleValidateToken()
 const password = ref("");
 const confirmPassword = ref("");
 const passwordMatched = ref(true);
-const status = ref(400)
 
 const formValid = computed(() => {
   return password.value.length >= 8 && passwordMatched.value;
 })
-
-const changePassword = async () => {
-  status.value = await userStore.changeUserPassword(token, password.value)
-}
 
 watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => {
       passwordMatched.value = newPassword.value === newConfirmPassword.value;
@@ -55,6 +52,7 @@ watch(() => [password, confirmPassword], ([newPassword, newConfirmPassword]) => 
 
 onBeforeUnmount(() => {
   errorStore.$reset()
+  messageStore.$reset()
 })
 
 </script>
@@ -72,40 +70,27 @@ onBeforeUnmount(() => {
         <div class="col-md-6">
 
           <Message
-              v-if="status!==200 && errorStore.error"
+              v-if="errorStore.hasError"
               title="Failed to change the password"
               title-color="danger"
-          >
-            <template #content>
-              There was an error when changing the password.
-              <br>
-              The link may have expired.
-              <br>
-              <RouterLink to="/forgot-password">Try again</RouterLink>
-            </template>
-          </Message>
+              :text="errorStore.error"
+          />
 
           <Message
-              v-else-if="status===200"
+              v-else-if="messageStore.hasMessage"
               title="Password successfully changed"
               title-color="success"
-          >
-            <template #content>
-              Your password has been successfully reset.
-              <br>
-              You can now
-              <RouterLink to="/">return to the home page</RouterLink>
-              .
-            </template>
-          </Message>
+              :text="messageStore.message"
+          />
+
 
           <div class="card" v-else>
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Сброс пароля</h2>
-              <form @submit.prevent="changePassword">
+              <form @submit.prevent="userStore.changeUserPassword(token, password)">
                 <div class="form-group">
                   <label for="password">Пароль</label>
-                  <CustomInput
+                  <BaseInput
                       v-model="password"
                       type="password"
                       class="form-control"
@@ -116,7 +101,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="form-group">
                   <label for="confirmPassword">Подтверждение пароля</label>
-                  <CustomInput
+                  <BaseInput
                       v-model="confirmPassword"
                       type="password"
                       class="form-control"
@@ -128,7 +113,7 @@ onBeforeUnmount(() => {
                     Пароли не совпадают
                   </div>
                 </div>
-                <CustomButton
+                <BaseButton
                     text="Установить новый пароль"
                     type="submit"
                     class="btn-block"

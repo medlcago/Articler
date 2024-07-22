@@ -4,25 +4,28 @@ import {changeUserData, getUser, registerUser, resetPassword, resetPasswordConfi
 import {loginUser, logoutUser, refreshAccessToken, verifyAccessToken} from "@/services/auth.js";
 import {useRouter} from "vue-router";
 import {useErrorStore} from "@/store/errorStore.js";
+import {useMessageStore} from "@/store/messageStore.js";
 
 export const useUserStore = defineStore("user", () => {
     const router = useRouter()
     const errorStore = useErrorStore()
+    const messageStore = useMessageStore()
 
     const currentUser = ref({})
     const isLoggedIn = ref(false)
 
     const loading = ref(false)
+    const editProfile = ref(false)
 
     const login = async (email, password) => {
         loading.value = true
         const user = await loginUser(email, password);
         loading.value = false
         if (user) {
-            errorStore.error = ""
+            messageStore.setMessage("Вы успешно вошли в систему")
             await router.replace("/profile")
         } else {
-            errorStore.error = "Неверный email или пароль";
+            errorStore.setError("Неверный email или пароль")
         }
 
     }
@@ -35,15 +38,16 @@ export const useUserStore = defineStore("user", () => {
         )
         loading.value = false
         if (status === 201) {
-            errorStore.errors = {}
+            errorStore.clearAll()
             await login(email, password)
         } else {
-            errorStore.error = data
+            errorStore.setErrors(data)
         }
     }
 
     const logout = async () => {
         await logoutUser()
+        messageStore.setMessage("Вы успешно вышли из системы")
         await router.replace({
             name: "login"
         })
@@ -63,28 +67,35 @@ export const useUserStore = defineStore("user", () => {
         return currentUser
     }
     const updateUserData = async (data) => {
+        editProfile.value = true
         const {data: result, status} = await changeUserData(currentUser.value.id, data)
-        if (status !== 200) {
-            errorStore.errors = result
-        }
-        return {
-            status,
-            result
+        editProfile.value = false
+        if (status === 200) {
+            messageStore.setMessage("Данные успешно обновлены")
+            currentUser.value = result
+        } else {
+            errorStore.setError("Не удалось обновить данные")
         }
     }
 
     const resetUserPassword = async (email) => {
         const {status} = await resetPassword(email)
-        errorStore.error = status === 200 ? "Письмо для восстановления пароля отправлено на указанный вами адрес электронной почты" : "Адрес не найден в системе";
-        return status
+        if (status === 200) {
+            messageStore.setMessage("Письмо отправлено на вашу почту")
+        } else if (status === 400) {
+            errorStore.setError("Адрес не найден в системе")
+        } else {
+            errorStore.setError("Произошла ошибка при смене пароля")
+        }
     }
 
     const changeUserPassword = async (token, password) => {
         const {status} = await resetPasswordConfirm(token, password)
-        if (status !== 200) {
-            errorStore.error = "Произошла ошибка при смене пароля"
+        if (status === 200) {
+            messageStore.setMessage("Пароль успешно изменен")
+        } else {
+            errorStore.setError("Произошла ошибка.\nВозможно, время действия токена истекло")
         }
-        return status
     }
 
     return {
@@ -97,6 +108,7 @@ export const useUserStore = defineStore("user", () => {
         logout,
         register,
         loading,
+        editProfile,
         updateUserData,
         changeUserPassword
     }

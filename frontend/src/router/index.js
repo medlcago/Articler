@@ -1,7 +1,6 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import {logoutUser} from "@/services/auth.js";
 import {useUserStore} from "@/store/userStore.js";
-import {usePageStore} from "@/store/pageStore.js";
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -101,13 +100,6 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const userStore = useUserStore()
-    const pageStore = usePageStore()
-
-    await pageStore.setCurrentPage({
-        name: to.name,
-        shortName: to.meta.shortName,
-        longName: to.meta.longName,
-    })
 
     const isLoggedIn = await userStore.checkAuth()
     if (isLoggedIn) {

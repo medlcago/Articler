@@ -2,13 +2,14 @@ import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import {POST_LIMIT, POST_PROFILE_LIMIT} from "@/config.js";
 import {createPost, deletePost, getPost, getPosts} from "@/services/post.js";
-import {useRoute, useRouter} from "vue-router";
+import {useRouter} from "vue-router";
 import {useErrorStore} from "@/store/errorStore.js";
+import {useMessageStore} from "@/store/messageStore.js";
 
 export const usePostStore = defineStore("post", () => {
     const router = useRouter()
-    const route = useRoute()
     const errorStore = useErrorStore()
+    const messageStore = useMessageStore()
 
     const currentPage = ref(1)
     const offset = ref(0)
@@ -16,13 +17,12 @@ export const usePostStore = defineStore("post", () => {
     const profileLimit = POST_PROFILE_LIMIT
     const loading = ref(true)
 
-    const posts = ref({})
+    const posts = ref([])
     const post = ref({})
     const totalRecords = computed(() => posts.value.count)
 
-    const fetchPost = async () => {
+    const fetchPost = async (postId) => {
         loading.value = true
-        const postId = route.params.id
         const data = await getPost(postId)
         if (data) {
             post.value = data
@@ -50,18 +50,19 @@ export const usePostStore = defineStore("post", () => {
         loading.value = false
     }
 
-    const sharePost = async (postTitle, postDescription, isPublished) => {
-        const {data, status} = await createPost(postTitle, postDescription, isPublished);
+    const sharePost = async (data) => {
+        const {data: result, status} = await createPost(data);
         if (status === 201) {
-            errorStore.errors = {}
+            messageStore.setMessage("Пост успешно создан")
+            errorStore.clearAll()
             loading.value = true
             currentPage.value = 1
             offset.value = 0
             await fetchPosts()
         } else {
-            errorStore.errors = data
+            errorStore.setErrors(result)
+            messageStore.clearMessage()
         }
-        return status
     }
 
     const changePageAndFetchPosts = async (page) => {
@@ -79,8 +80,25 @@ export const usePostStore = defineStore("post", () => {
 
     const removePost = async (postId) => {
         const {status} = await deletePost(postId)
-        errorStore.error = status === 204 ? "Пост успешно удален" : "Не удалось удалить пост"
-        return status
+        if (status === 204) {
+            messageStore.setMessage("Пост успешно удален")
+        } else {
+            errorStore.setError("Не удалось удалить пост")
+        }
+    }
+
+    const deletePostFromDetail = async (postId) => {
+        await removePost(postId)
+        if (!errorStore.hasError) {
+            await router.replace({name: "main"})
+        }
+    }
+
+    const deletePostFromList = async (postId) => {
+        await removePost(postId)
+        if (!errorStore.hasError) {
+            await changePageAndFetchPosts(currentPage.value);
+        }
     }
 
     return {
@@ -93,7 +111,8 @@ export const usePostStore = defineStore("post", () => {
         loading,
         fetchPost,
         fetchPosts,
-        removePost,
+        deletePostFromDetail,
+        deletePostFromList,
         changePageAndFetchPosts,
         sharePost,
         fetchUserPosts,

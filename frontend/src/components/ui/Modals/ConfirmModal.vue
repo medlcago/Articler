@@ -1,5 +1,6 @@
 <script setup>
-import Modal from "@/components/Modal.vue";
+import BaseModal from "@/components/ui/Modals/BaseModal.vue";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
 
 const props = defineProps({
   id: {
@@ -32,16 +33,27 @@ const emits = defineEmits(["cancel", "onConfirm"])
 </script>
 
 <template>
-  <Modal
+  <BaseModal
       :id="id"
       :name="name"
       :title="title"
-      :body="body">
+      :body="body"
+  >
     <template #footer>
-      <button type="button" class="btn btn-secondary" @click="emits('cancel')" data-dismiss="modal">{{ cancelButtonText }}</button>
-      <button type="button" class="btn btn-danger" @click="emits('onConfirm')" data-dismiss="modal">{{ confirmButtonText }}</button>
+      <BaseButton
+          :text="cancelButtonText"
+          color="secondary"
+          data-dismiss="modal"
+          @click="emits('cancel')"
+      />
+      <BaseButton
+          :text="confirmButtonText"
+          color="danger"
+          data-dismiss="modal"
+          @click="emits('onConfirm')"
+      />
     </template>
-  </Modal>
+  </BaseModal>
 </template>
 
 <style scoped>

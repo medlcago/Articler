@@ -1,6 +1,6 @@
 <script setup>
 import {computed} from "vue";
-import ConfirmModal from "@/components/ConfirmModal.vue";
+import ConfirmModal from "@/components/ui/Modals/ConfirmModal.vue";
 import {useUserStore} from "@/store/userStore.js";
 import {createPostUrl} from "@/utils/index.js";
 
@@ -18,9 +18,8 @@ const props = defineProps({
 
 const emits = defineEmits(["delete"])
 
-const paragraphs = computed(() => {
-  const description = props.detail ? props.post.description : props.post.truncated_description
-  return description.split("\n");
+const description = computed(() => {
+  return props.detail ? props.post.description : props.post.truncated_description
 })
 
 const {currentUser} = useUserStore();
@@ -56,13 +55,9 @@ const {currentUser} = useUserStore();
 
         <slot name="text">
           <div class="card-text">
-            <template v-for="paragraph in paragraphs">
-              <div v-if="paragraph.length > 0" :key="paragraph">
-                <p>{{ paragraph }}</p>
-              </div>
-            </template>
-            <a v-if="!detail" class="float-right" :href="createPostUrl(post)">Читать продолжение</a>
+            {{ description }}
           </div>
+          <a v-if="!detail" class="float-right" :href="createPostUrl(post)">Читать продолжение</a>
         </slot>
 
         <slot name="footer">
@@ -89,5 +84,9 @@ const {currentUser} = useUserStore();
 
 .delete-post {
   cursor: pointer;
+}
+
+.card-text {
+  white-space: pre-line;
 }
 </style>

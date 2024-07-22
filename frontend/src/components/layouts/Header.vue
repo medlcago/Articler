@@ -2,15 +2,15 @@
 import {useTitle} from "@vueuse/core";
 import {onMounted} from "vue";
 import {useUserStore} from "@/store/userStore.js";
-import {usePageStore} from "@/store/pageStore.js";
+import {useCurrentPage} from "@/hooks/currentPage.js";
 
 
 const {currentUser, isLoggedIn, logout} = useUserStore()
-const {currentPage} = usePageStore()
+const {longName, shortName, name} = useCurrentPage()
 const pageTitle = useTitle()
 
 onMounted(() => {
-  pageTitle.value = currentPage.shortName
+  pageTitle.value = shortName
 })
 
 
@@ -20,7 +20,7 @@ onMounted(() => {
   <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
-        <span class="navbar-brand" href="#">{{ currentPage.longName }}</span>
+        <span class="navbar-brand" href="#">{{ longName }}</span>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
@@ -28,18 +28,18 @@ onMounted(() => {
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <RouterLink :to="{name: 'main'}" class="nav-link" :class="{active: currentPage.name  ===  'main'}">
+              <RouterLink :to="{name: 'main'}" class="nav-link" :class="{active: name  ===  'main'}">
                 Главная
               </RouterLink>
             </li>
             <template v-if="!isLoggedIn">
               <li class="nav-item">
-                <RouterLink :to="{name: 'login'}" class="nav-link" :class="{active: currentPage.name  ===  'login'}">
+                <RouterLink :to="{name: 'login'}" class="nav-link" :class="{active: name  ===  'login'}">
                   Вход
                 </RouterLink>
               </li>
               <li class="nav-item">
-                <RouterLink to="register" class="nav-link" :class="{active: currentPage.name   === 'register'}">
+                <RouterLink to="register" class="nav-link" :class="{active: name   === 'register'}">
                   Регистрация
                 </RouterLink>
               </li>
@@ -48,7 +48,7 @@ onMounted(() => {
             <template v-if="isLoggedIn">
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                   data-toggle="dropdown" aria-expanded="false" :class="{active: currentPage.name  ===  'profile'}">
+                   data-toggle="dropdown" aria-expanded="false" :class="{active: name  ===  'profile'}">
                   {{ currentUser.email }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">

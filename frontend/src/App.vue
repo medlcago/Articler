@@ -5,7 +5,7 @@
 
 <script setup>
 
-import OfflineNotification from "@/components/OfflineNotification.vue";
+import OfflineNotification from "@/components/layouts/OfflineNotification.vue";
 import {onBeforeUnmount, onMounted, ref} from "vue";
 
 const isOffline = ref(false);

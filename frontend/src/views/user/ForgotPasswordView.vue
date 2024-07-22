@@ -1,29 +1,25 @@
 <script setup>
 
-import Header from "@/components/Header.vue";
-import {onBeforeUnmount, ref} from "vue";
-import Alert from "@/components/Alert.vue";
+import Header from "@/components/layouts/Header.vue";
+import {ref} from "vue";
 import {isValidEmail} from "@/utils/index.js";
-import CustomInput from "@/components/CustomInput.vue";
-import CustomButton from "@/components/CustomButton.vue";
 import {useUserStore} from "@/store/userStore.js";
-import {useErrorStore} from "@/store/errorStore.js";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
+import BaseInput from "@/components/ui/Inputs/BaseInput.vue";
+import {useToast} from "@/hooks/toast.js";
+
+useToast({
+  duration: 5000
+})
 
 const userStore = useUserStore()
-const errorStore = useErrorStore()
 
-const status = ref(400);
 const email = ref("");
 
 const sendResetPasswordMessage = async () => {
-  status.value = await userStore.resetUserPassword(email.value)
+  await userStore.resetUserPassword(email.value)
   email.value = "";
 }
-
-onBeforeUnmount(() => {
-  errorStore.$reset()
-})
-
 </script>
 
 <template>
@@ -31,23 +27,13 @@ onBeforeUnmount(() => {
   <div class="container my-5">
     <div class="row justify-content-center">
       <div class="col-md-6">
-
-        <Alert
-            v-if="errorStore.error"
-            class="text-center"
-            dismissible
-            :content="errorStore.error"
-            :color="`${status===200?'primary' : 'danger'}`"
-            @close="errorStore.error=''"
-        />
-
         <div class="card">
           <div class="card-body">
             <h2 class="card-title text-center mb-4">Восстановление пароля</h2>
             <form @submit.prevent="sendResetPasswordMessage">
               <div class="form-group">
                 <label for="email">Email Address</label>
-                <CustomInput
+                <BaseInput
                     v-model="email"
                     id="email"
                     placeholder="Адрес электронной почты"
@@ -56,7 +42,7 @@ onBeforeUnmount(() => {
                     required
                 />
               </div>
-              <CustomButton
+              <BaseButton
                   text="Сбросить пароль"
                   type="sumbit"
                   class="btn-block"

@@ -1,21 +1,20 @@
 <script setup>
 
-import Header from "@/components/Header.vue";
-import {onBeforeUnmount, ref} from "vue";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import CustomInput from "@/components/CustomInput.vue";
-import CustomButton from "@/components/CustomButton.vue";
+import Header from "@/components/layouts/Header.vue";
+import {reactive} from "vue";
+import LoadingSpinner from "@/components/layouts/LoadingSpinner.vue";
 import {useUserStore} from "@/store/userStore.js";
-import {useErrorStore} from "@/store/errorStore.js";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
+import BaseInput from "@/components/ui/Inputs/BaseInput.vue";
+import {useToast} from "@/hooks/toast.js";
+
+useToast()
 
 const userStore = useUserStore()
-const errorStore = useErrorStore()
 
-const email = ref("")
-const password = ref("")
-
-onBeforeUnmount(() => {
-  errorStore.$reset()
+const user = reactive({
+  email: "",
+  password: "",
 })
 
 </script>
@@ -30,11 +29,11 @@ onBeforeUnmount(() => {
           <div class="card">
             <div class="card-body">
               <h2 class="card-title text-center mb-4">Авторизация</h2>
-              <form @submit.prevent="userStore.login(email, password)">
+              <form @submit.prevent="userStore.login(user.email, user.password)">
                 <div class="form-group mb-3">
                   <label for="email" class="form-label">Email</label>
-                  <CustomInput
-                      v-model="email"
+                  <BaseInput
+                      v-model="user.email"
                       type="email"
                       id="email"
                       placeholder="Введите email"
@@ -44,19 +43,16 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="form-group mb-3">
                   <label for="password" class="form-label">Пароль</label>
-                  <CustomInput
-                      v-model="password"
+                  <BaseInput
+                      v-model="user.password"
                       type="password"
                       id="password"
                       placeholder="Введите пароль"
                       class="form-control"
                       required
                   />
-                  <div class="text-danger" v-if="errorStore.error">
-                    {{ errorStore.error }}
-                  </div>
                 </div>
-                <CustomButton
+                <BaseButton
                     text="Войти"
                     type="submit"
                     class="btn-block"

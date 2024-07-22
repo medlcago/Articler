@@ -1,21 +1,24 @@
 <script setup>
 
-import Header from "@/components/Header.vue";
-import {computed, onBeforeUnmount, onMounted, ref} from "vue";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import Modal from "@/components/Modal.vue";
-import CustomButton from "@/components/CustomButton.vue";
-import CustomTextarea from "@/components/CustomTextarea.vue";
+import Header from "@/components/layouts/Header.vue";
+import {computed, onMounted, ref} from "vue";
+import LoadingSpinner from "@/components/layouts/LoadingSpinner.vue";
+import BaseModal from "@/components/ui/Modals/BaseModal.vue";
 import {useUserStore} from "@/store/userStore.js";
 import {usePostStore} from "@/store/postStore.js";
 import {useErrorStore} from "@/store/errorStore.js";
-import PostList from "@/components/PostList.vue";
+import PostList from "@/components/blocks/PostList.vue";
+import BaseButton from "@/components/ui/Buttons/BaseButton.vue";
+import BaseTextarea from "@/components/ui/Inputs/BaseTextarea.vue";
+import {useToast} from "@/hooks/toast.js";
+
+
+useToast()
 
 const userStore = useUserStore()
 const postStore = usePostStore()
 const errorStore = useErrorStore()
 
-const editProfile = ref(false)
 const previewImage = ref(null)
 
 
@@ -26,7 +29,7 @@ const currentStatus = computed(() => {
 const userStatus = ref(currentStatus.value)
 
 const cancelEditProfile = () => {
-  editProfile.value = false;
+  userStore.editProfile = false
   userStatus.value = currentStatus.value;
 }
 
@@ -36,28 +39,9 @@ const handleFileUpload = (event) => {
   previewImage.value = URL.createObjectURL(file);
 }
 
-const updateProfile = async () => {
-  editProfile.value = false;
-  if (userStatus.value !== currentStatus.value) {
-    const {status, result} = await userStore.updateUserData({
-      status: userStatus.value
-    })
-    if (status === 200) {
-      userStore.currentUser = result
-    } else {
-      userStatus.value = currentStatus.value
-    }
-  }
-}
-
 onMounted(async () => {
   await postStore.fetchUserPosts(userStore.currentUser.id)
 })
-
-onBeforeUnmount(() => {
-  errorStore.$reset()
-})
-
 </script>
 
 <template>
@@ -66,7 +50,6 @@ onBeforeUnmount(() => {
   <div class="container mt-5" v-else>
     <div class="row">
       <div class="col-md-4 profile-column">
-
         <div class="d-flex justify-content-center">
           <template v-if="userStore.currentUser.avatar">
             <img :src="userStore.currentUser.avatar"
@@ -85,42 +68,42 @@ onBeforeUnmount(() => {
           <h2 id="user-email">{{ userStore.currentUser.email }}</h2>
         </div>
         <div class="border-bottom w-100 my-2"></div>
-        <div class="profile-info" v-if="!editProfile">
+        <div class="profile-info" v-if="!userStore.editProfile">
           <div class="status" v-if="currentStatus">
-            <div id="user-status" class="text-wrap text-break">{{ currentStatus }}</div>
+            <div id="user-status">{{ currentStatus }}</div>
             <div class="text-danger"
-                 v-if="errorStore.errors.hasOwnProperty('status')"
-                 v-for="error in errorStore.errors['status']">
+                 v-if="errorStore.hasKey('status')"
+                 v-for="error in errorStore.getError('status')">
               {{ error }}
             </div>
           </div>
           <div class="edit-profile mt-2">
-            <CustomButton
+            <BaseButton
                 text="Редактировать профиль"
                 class="btn-block"
-                @click="editProfile=true"
+                @click="userStore.editProfile=true"
             />
           </div>
         </div>
 
         <!-- Editing a profile-->
         <div class="form-group" v-else>
-          <CustomTextarea
+          <BaseTextarea
               maxlength="128"
               @keydown.enter.prevent
-              v-model="userStatus"
+              v-model.trim="userStatus"
               class="form-control border-dark"
               placeholder="Enter status"
               id="status"
               rows="3"
           />
           <div class="d-flex justify-content-start mt-2">
-            <CustomButton
+            <BaseButton
                 text="Сохранить"
                 class="btn-sm mr-1"
-                @click="updateProfile"
+                @click="userStore.updateUserData({status: userStatus})"
             />
-            <CustomButton
+            <BaseButton
                 text="Отмена"
                 color="secondary"
                 class="btn-sm"
@@ -146,7 +129,7 @@ onBeforeUnmount(() => {
     </div>
   </div>
 
-  <Modal
+  <BaseModal
       id="uploadPhotoModal"
       name="uploadPhotoModal"
       title="Загрузка изображения"
@@ -166,11 +149,16 @@ onBeforeUnmount(() => {
         <img :src="previewImage" alt="Загруженное фото"/>
       </div>
     </template>
-  </Modal>
+  </BaseModal>
 
 </template>
 
 <style scoped>
+#user-status {
+  overflow-wrap: break-word;
+  white-space: pre-line;
+}
+
 .profile-picture {
   width: 294px;
   height: 294px;

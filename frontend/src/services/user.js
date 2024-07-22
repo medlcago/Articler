@@ -12,10 +12,10 @@ export const checkEmail = async (email) => {
         const response = await instance.post("/email_available/", {
             email: email
         });
-        return response.status;
+        return response.status === 200
     } catch (error) {
         console.log(error);
-        return error.status
+        return false;
     }
 }
 export const getUser = async () => {

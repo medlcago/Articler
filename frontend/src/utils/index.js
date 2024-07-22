@@ -42,6 +42,6 @@ export const createUrl = (filters = {}) => {
 }
 
 export const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
 }
